@@ -1,75 +1,56 @@
 #include "cmsis_os.h"
-#include "Inductor.h"
-#include "main.h"
 #include "mbed.h"
-#include "PID.h"
+#include "INA219.hpp"
 
-void Inductors(void const *argument) {
+Ticker timer1;
+Ticker timer2;
+Ticker timer3;
+Serial pc(USBTX, USBRX, 230400);
 
-    //Set Inductor Z values
-    Inductor inductor_Z(inductor_Z_enA, inductor_Z_in);
-    inductor_Z.setInputLimits(inductor_Z_input_min, inductor_Z_input_max);
-    inductor_Z.setOutputLimits(inductor_Z_output_min, inductor_Z_output_max);
-    inductor_Z.setTunings(inductor_Z_Kc,inductor_Z_Ki,inductor_Z_Kd);
-    inductor_Z.setMode(AUTO_MODE);
-    inductor_Z.setInterval(inductor_Z_timestep);
-    inductor_Z.setSetPoint(inductor_Z_set_point);
+DigitalOut led1(PB_0);
+DigitalOut led2(PB_7);
+DigitalOut led3(PB_14);
+DigitalOut  out(PC_8);
 
-    // Process PID loop
-    while (true) {
-        // Semiphore from completed calculation here
-        // Wait for data to be available,  Probably signal 
-        Process_PID(inductor_Z, 123);
-        // Process_PID(inductor_X_h);
-        // Process_PID(inductor_X_l);
-        // Process_PID(inductor_Y_h);
-        // Process_PID(inductor_Y_l);
-        // Process_PID(inductor_MZ_h;
-        // Process_PID(inductor_MZ_l);
-    }
-}
+AnalogIn   aIn(A0);
 
-void Process_PID(Inductor& inductor, float a_value) {  //get this from calculated forces probably a memory pool
-    inductor.setProcessValue(a_value);
-    power = inductor.compute();
+INA219 ina219(PB_9, PB_8, 0x40, 1000000, RES_9BITS);
+//mbed-os/targets/TARGET_STM/i2c_api.c
+void active_blink1(void);
+void active_blink2(void);
+void active_blink3(void);
 
-    if (power >= 0.0) {
-        inductor.setPolarity(0);
-        inductor.setPower(power);
-    } else {
-        power = -(power);
-        inductor.setPolarity(1);
-        inductor.setPower(power);
-    }
+float mA = 0;
 
-}
+PwmOut inductor_power(PC_6);
 
+bool print = true;
 int main() {
-    osKernelStart();
-    timer1.attach(&active_blink1, .25);
-    timer2.attach(&active_blink2, .5);
-    timer3.attach(&active_blink3, 1);
-    osThreadCreate(osThread(magmeter), NULL);
-    //osThreadCreate(osThread(Inductors), NULL);
-    //osThreadCreate(osThread(Calculate), NULL);
-
-    // state output and debug info
-//    Serial pc(USBTX, USBRX, 921600);
-    osDelay(osWaitForever);
+    timer1.attach(&active_blink1, 5);
+    timer2.attach(&active_blink2, .01);
+    //timer3.attach(&active_blink3, 1);
+//    osKernelStart();
+    inductor_power.period(.01);
+    inductor_power = .25;
+    while (true) {
+    	pc.printf("%f\r\n", aIn.read()*100.0f);
+    	print = false;
+    }
 }
 
 //Blink ISR
 void active_blink1() {
     led1 = !led1;
+    mA = 0;
 }
 
 //Blink ISR
 void active_blink2() {
     led2 = !led2;
+    print = true;
 }
 
 //Blink ISR
-void active_blink3() {
-    led3 = !led3;
-}
-void Calculate(void const *argument) {}
+//void active_blink3() {
+//    led3 = !led3;
+//}

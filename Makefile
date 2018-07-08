@@ -46,13 +46,8 @@ PROJECT := MFRB
 ###############################################################################
 # Objects and Paths
 
-OBJECTS += AK8963/ak8963.o
-OBJECTS += Inductor/Inductor.o
-OBJECTS += PID/PID.o
-OBJECTS += proc_vects.o
 OBJECTS += main.o
-OBJECTS += magmeter.o
-OBJECTS += inductors.o
+OBJECTS += INA219/INA219.o
 OBJECTS += mbed-os/drivers/AnalogIn.o
 OBJECTS += mbed-os/drivers/BusIn.o
 OBJECTS += mbed-os/drivers/BusInOut.o
@@ -465,9 +460,7 @@ OBJECTS += mbed-os/targets/TARGET_STM/us_ticker_32b.o
 
 INCLUDE_PATHS += -I../
 INCLUDE_PATHS += -I../.
-INCLUDE_PATHS += -I../AK8963
-INCLUDE_PATHS += -I../Inductor
-INCLUDE_PATHS += -I../PID
+INCLUDE_PATHS += -I../INA219/
 INCLUDE_PATHS += -I../mbed-os/.
 INCLUDE_PATHS += -I../mbed-os/cmsis
 INCLUDE_PATHS += -I../mbed-os/cmsis/TARGET_CORTEX_M
@@ -558,28 +551,26 @@ INCLUDE_PATHS += -I../mbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767
 INCLUDE_PATHS += -I../mbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI/device/TOOLCHAIN_GCC_ARM
 INCLUDE_PATHS += -I../mbed-os/targets/TARGET_STM/TARGET_STM32F7/device
 
-# System Paths
-LIBRARY_PATHS +=
-LIBRARIES := 
+LIBRARY_PATHS :=
+LIBRARIES :=
 LINKER_SCRIPT ?= ../mbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI/device/TOOLCHAIN_GCC_ARM/STM32F767xI.ld
 
 # Objects and Paths
 ###############################################################################
 # Tools and Flags
 
-
-AS      = 'arm-none-eabi-gcc' '-x' 'assembler-with-cpp' '-c' '-Wall' '-Wextra' '-Wno-unused-parameter' '-Wno-missing-field-initializers' '-fmessage-length=0' '-fno-exceptions' '-fno-builtin' '-ffunction-sections' '-fdata-sections' '-funsigned-char' '-MMD' '-fno-delete-null-pointer-checks' '-fomit-frame-pointer' '-Os' '-g1' '-mcpu=cortex-m7' '-mthumb' '-mfpu=fpv5-d16' '-mfloat-abi=hard'
-CC      = 'arm-none-eabi-gcc' '-std=gnu99' '-c' '-Wall' '-Wextra' '-Wno-unused-parameter' '-Wno-missing-field-initializers' '-fmessage-length=0' '-fno-exceptions' '-fno-builtin' '-ffunction-sections' '-fdata-sections' '-funsigned-char' '-MMD' '-fno-delete-null-pointer-checks' '-fomit-frame-pointer' '-Os' '-g1' '-mcpu=cortex-m7' '-mthumb' '-mfpu=fpv5-d16' '-mfloat-abi=hard'
-CPP     = 'arm-none-eabi-g++' '-std=gnu++98' '-fno-rtti' '-Wvla' '-c' '-Wall' '-Wextra' '-Wno-unused-parameter' '-Wno-missing-field-initializers' '-fmessage-length=0' '-fno-exceptions' '-fno-builtin' '-ffunction-sections' '-fdata-sections' '-funsigned-char' '-MMD' '-fno-delete-null-pointer-checks' '-fomit-frame-pointer' '-Os' '-g1' '-mcpu=cortex-m7' '-mthumb' '-mfpu=fpv5-d16' '-mfloat-abi=hard'
+AS      = 'arm-none-eabi-gcc' '-x' 'assembler-with-cpp' '-c' '-Wall' '-Wextra' '-Wno-unused-parameter' '-Wno-missing-field-initializers' '-fmessage-length=0' '-fno-exceptions' '-fno-builtin' '-ffunction-sections' '-fdata-sections' '-funsigned-char' '-MMD' '-fno-delete-null-pointer-checks' '-fomit-frame-pointer' '-Os' '-g1' '-mcpu=cortex-m7' '-mthumb' '-mfpu=fpv5-d16' '-mfloat-abi=softfp'
+CC      = 'arm-none-eabi-gcc' '-std=gnu99' '-c' '-Wall' '-Wextra' '-Wno-unused-parameter' '-Wno-missing-field-initializers' '-fmessage-length=0' '-fno-exceptions' '-fno-builtin' '-ffunction-sections' '-fdata-sections' '-funsigned-char' '-MMD' '-fno-delete-null-pointer-checks' '-fomit-frame-pointer' '-Os' '-g1' '-mcpu=cortex-m7' '-mthumb' '-mfpu=fpv5-d16' '-mfloat-abi=softfp'
+CPP     = 'arm-none-eabi-g++' '-std=gnu++98' '-fno-rtti' '-Wvla' '-c' '-Wall' '-Wextra' '-Wno-unused-parameter' '-Wno-missing-field-initializers' '-fmessage-length=0' '-fno-exceptions' '-fno-builtin' '-ffunction-sections' '-fdata-sections' '-funsigned-char' '-MMD' '-fno-delete-null-pointer-checks' '-fomit-frame-pointer' '-Os' '-g1' '-mcpu=cortex-m7' '-mthumb' '-mfpu=fpv5-d16' '-mfloat-abi=softfp'
 LD      = 'arm-none-eabi-gcc'
 ELF2BIN = 'arm-none-eabi-objcopy'
-PREPROC = 'arm-none-eabi-cpp' '-E' '-P' '-Wl,--gc-sections' '-Wl,--wrap,main' '-Wl,--wrap,_malloc_r' '-Wl,--wrap,_free_r' '-Wl,--wrap,_realloc_r' '-Wl,--wrap,_memalign_r' '-Wl,--wrap,_calloc_r' '-Wl,--wrap,exit' '-Wl,--wrap,atexit' '-Wl,-n' '-mcpu=cortex-m7' '-mthumb' '-mfpu=fpv5-d16' '-mfloat-abi=hard'
+PREPROC = 'arm-none-eabi-cpp' '-E' '-P' '-Wl,--gc-sections' '-Wl,--wrap,main' '-Wl,--wrap,_malloc_r' '-Wl,--wrap,_free_r' '-Wl,--wrap,_realloc_r' '-Wl,--wrap,_memalign_r' '-Wl,--wrap,_calloc_r' '-Wl,--wrap,exit' '-Wl,--wrap,atexit' '-Wl,-n' '-mcpu=cortex-m7' '-mthumb' '-mfpu=fpv5-d16' '-mfloat-abi=softfp'
 
 
 C_FLAGS += -std=gnu99
 C_FLAGS += -DFEATURE_LWIP=1
 C_FLAGS += -D__MBED__=1
-C_FLAGS += -DMBED_BUILD_TIMESTAMP=1527284445.62
+C_FLAGS += -DDEVICE_I2CSLAVE=1
 C_FLAGS += -D__FPU_PRESENT=1
 C_FLAGS += -DDEVICE_PORTOUT=1
 C_FLAGS += -DTARGET_STM32F767ZI
@@ -591,6 +582,7 @@ C_FLAGS += -DTOOLCHAIN_object
 C_FLAGS += -DDEVICE_SERIAL_ASYNCH=1
 C_FLAGS += -D__CMSIS_RTOS
 C_FLAGS += -DTOOLCHAIN_GCC
+C_FLAGS += -DDEVICE_STDIO_MESSAGES=1
 C_FLAGS += -DDEVICE_CAN=1
 C_FLAGS += -DARM_MATH_CM7
 C_FLAGS += -DTARGET_CORTEX_M
@@ -606,8 +598,7 @@ C_FLAGS += -DDEVICE_INTERRUPTIN=1
 C_FLAGS += -DTARGET_CORTEX
 C_FLAGS += -DDEVICE_I2C=1
 C_FLAGS += -DTRANSACTION_QUEUE_SIZE_SPI=2
-C_FLAGS += -DDEVICE_I2CSLAVE=1
-C_FLAGS += -DDEVICE_STDIO_MESSAGES=1
+C_FLAGS += -DMBED_BUILD_TIMESTAMP=1529181644.9
 C_FLAGS += -D__CORTEX_M7
 C_FLAGS += -DDEVICE_PWMOUT=1
 C_FLAGS += -DTARGET_FAMILY_STM32
@@ -636,7 +627,7 @@ CXX_FLAGS += -fno-rtti
 CXX_FLAGS += -Wvla
 CXX_FLAGS += -DFEATURE_LWIP=1
 CXX_FLAGS += -D__MBED__=1
-CXX_FLAGS += -DMBED_BUILD_TIMESTAMP=1527284445.62
+CXX_FLAGS += -DDEVICE_I2CSLAVE=1
 CXX_FLAGS += -D__FPU_PRESENT=1
 CXX_FLAGS += -DDEVICE_PORTOUT=1
 CXX_FLAGS += -DTARGET_STM32F767ZI
@@ -648,6 +639,7 @@ CXX_FLAGS += -DTOOLCHAIN_object
 CXX_FLAGS += -DDEVICE_SERIAL_ASYNCH=1
 CXX_FLAGS += -D__CMSIS_RTOS
 CXX_FLAGS += -DTOOLCHAIN_GCC
+CXX_FLAGS += -DDEVICE_STDIO_MESSAGES=1
 CXX_FLAGS += -DDEVICE_CAN=1
 CXX_FLAGS += -DARM_MATH_CM7
 CXX_FLAGS += -DTARGET_CORTEX_M
@@ -663,8 +655,7 @@ CXX_FLAGS += -DDEVICE_INTERRUPTIN=1
 CXX_FLAGS += -DTARGET_CORTEX
 CXX_FLAGS += -DDEVICE_I2C=1
 CXX_FLAGS += -DTRANSACTION_QUEUE_SIZE_SPI=2
-CXX_FLAGS += -DDEVICE_I2CSLAVE=1
-CXX_FLAGS += -DDEVICE_STDIO_MESSAGES=1
+CXX_FLAGS += -DMBED_BUILD_TIMESTAMP=1529181644.9
 CXX_FLAGS += -D__CORTEX_M7
 CXX_FLAGS += -DDEVICE_PWMOUT=1
 CXX_FLAGS += -DTARGET_FAMILY_STM32
@@ -697,102 +688,100 @@ ASM_FLAGS += -D__FPU_PRESENT=1
 ASM_FLAGS += -DUSBHOST_OTHER
 ASM_FLAGS += -D__MBED_CMSIS_RTOS_CM
 ASM_FLAGS += -D__CMSIS_RTOS
-ASM_FLAGS += -I./
-ASM_FLAGS += -IPID
-ASM_FLAGS += -IInductor
-ASM_FLAGS += -IAK8963
-ASM_FLAGS += -Imbed-os/.
-ASM_FLAGS += -Imbed-os/features
-ASM_FLAGS += -Imbed-os/features/frameworks
-ASM_FLAGS += -Imbed-os/features/frameworks/greentea-client
-ASM_FLAGS += -Imbed-os/features/frameworks/greentea-client/greentea-client
-ASM_FLAGS += -Imbed-os/features/frameworks/greentea-client/source
-ASM_FLAGS += -Imbed-os/features/frameworks/unity
-ASM_FLAGS += -Imbed-os/features/frameworks/unity/source
-ASM_FLAGS += -Imbed-os/features/frameworks/unity/unity
-ASM_FLAGS += -Imbed-os/features/frameworks/utest
-ASM_FLAGS += -Imbed-os/features/frameworks/utest/source
-ASM_FLAGS += -Imbed-os/features/frameworks/utest/utest
-ASM_FLAGS += -Imbed-os/features/mbedtls
-ASM_FLAGS += -Imbed-os/features/mbedtls/importer
-ASM_FLAGS += -Imbed-os/features/mbedtls/inc
-ASM_FLAGS += -Imbed-os/features/mbedtls/inc/mbedtls
-ASM_FLAGS += -Imbed-os/features/mbedtls/src
-ASM_FLAGS += -Imbed-os/features/mbedtls/platform
-ASM_FLAGS += -Imbed-os/features/mbedtls/platform/inc
-ASM_FLAGS += -Imbed-os/features/mbedtls/platform/src
-ASM_FLAGS += -Imbed-os/features/mbedtls/targets
-ASM_FLAGS += -Imbed-os/features/mbedtls/targets/TARGET_STM
-ASM_FLAGS += -Imbed-os/features/mbedtls/targets/TARGET_STM/TARGET_STM32F7
-ASM_FLAGS += -Imbed-os/features/nanostack
-ASM_FLAGS += -Imbed-os/features/storage
-ASM_FLAGS += -Imbed-os/features/netsocket
-ASM_FLAGS += -Imbed-os/features/netsocket/cellular
-ASM_FLAGS += -Imbed-os/features/netsocket/cellular/generic_modem_driver
-ASM_FLAGS += -Imbed-os/features/netsocket/cellular/utils
-ASM_FLAGS += -Imbed-os/features/filesystem
-ASM_FLAGS += -Imbed-os/features/filesystem/bd
-ASM_FLAGS += -Imbed-os/features/filesystem/fat
-ASM_FLAGS += -Imbed-os/features/filesystem/fat/ChaN
-ASM_FLAGS += -Imbed-os/features/filesystem/littlefs
-ASM_FLAGS += -Imbed-os/features/filesystem/littlefs/TESTS_COMMON
-ASM_FLAGS += -Imbed-os/features/filesystem/littlefs/littlefs
-ASM_FLAGS += -Imbed-os/cmsis
-ASM_FLAGS += -Imbed-os/cmsis/TARGET_CORTEX_M
-ASM_FLAGS += -Imbed-os/drivers
-ASM_FLAGS += -Imbed-os/events
-ASM_FLAGS += -Imbed-os/events/equeue
-ASM_FLAGS += -Imbed-os/rtos
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx4
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx5
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx5/Include
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx5/RTX
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Config
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Include
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Source
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Source/TOOLCHAIN_GCC
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Source/TOOLCHAIN_GCC/TARGET_RTOS_M4_M7
-ASM_FLAGS += -Imbed-os/rtos/TARGET_CORTEX/rtx5/Source
-ASM_FLAGS += -Imbed-os/hal
-ASM_FLAGS += -Imbed-os/hal/storage_abstraction
-ASM_FLAGS += -Imbed-os/platform
-ASM_FLAGS += -Imbed-os/targets
-ASM_FLAGS += -Imbed-os/targets/TARGET_STM
-ASM_FLAGS += -Imbed-os/targets/TARGET_STM/TARGET_STM32F7
-ASM_FLAGS += -Imbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI
-ASM_FLAGS += -Imbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI/TARGET_NUCLEO_F767ZI
-ASM_FLAGS += -Imbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI/device
-ASM_FLAGS += -Imbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI/device/TOOLCHAIN_GCC_ARM
-ASM_FLAGS += -Imbed-os/targets/TARGET_STM/TARGET_STM32F7/device
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth/arch
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth/arch/TARGET_STM
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth/arch/TARGET_STM/TARGET_STM32F7
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth/arch/TARGET_STM/TARGET_STM32F7/TARGET_NUCLEO_F767ZI
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip-sys
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip-sys/arch
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/api
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/core
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/core/ipv4
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/core/ipv6
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/lwip
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/lwip/priv
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/lwip/prot
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/netif
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/netif/ppp
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/netif/ppp/polarssl
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/netif
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/netif/ppp
-ASM_FLAGS += -Imbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/netif/ppp/polarssl
+ASM_FLAGS += -I../.
+ASM_FLAGS += -I../INA219/
+ASM_FLAGS += -I../mbed-os/.
+ASM_FLAGS += -I../mbed-os/features
+ASM_FLAGS += -I../mbed-os/features/frameworks
+ASM_FLAGS += -I../mbed-os/features/frameworks/greentea-client
+ASM_FLAGS += -I../mbed-os/features/frameworks/greentea-client/greentea-client
+ASM_FLAGS += -I../mbed-os/features/frameworks/greentea-client/source
+ASM_FLAGS += -I../mbed-os/features/frameworks/unity
+ASM_FLAGS += -I../mbed-os/features/frameworks/unity/source
+ASM_FLAGS += -I../mbed-os/features/frameworks/unity/unity
+ASM_FLAGS += -I../mbed-os/features/frameworks/utest
+ASM_FLAGS += -I../mbed-os/features/frameworks/utest/source
+ASM_FLAGS += -I../mbed-os/features/frameworks/utest/utest
+ASM_FLAGS += -I../mbed-os/features/mbedtls
+ASM_FLAGS += -I../mbed-os/features/mbedtls/importer
+ASM_FLAGS += -I../mbed-os/features/mbedtls/inc
+ASM_FLAGS += -I../mbed-os/features/mbedtls/inc/mbedtls
+ASM_FLAGS += -I../mbed-os/features/mbedtls/src
+ASM_FLAGS += -I../mbed-os/features/mbedtls/platform
+ASM_FLAGS += -I../mbed-os/features/mbedtls/platform/inc
+ASM_FLAGS += -I../mbed-os/features/mbedtls/platform/src
+ASM_FLAGS += -I../mbed-os/features/mbedtls/targets
+ASM_FLAGS += -I../mbed-os/features/mbedtls/targets/TARGET_STM
+ASM_FLAGS += -I../mbed-os/features/mbedtls/targets/TARGET_STM/TARGET_STM32F7
+ASM_FLAGS += -I../mbed-os/features/nanostack
+ASM_FLAGS += -I../mbed-os/features/storage
+ASM_FLAGS += -I../mbed-os/features/netsocket
+ASM_FLAGS += -I../mbed-os/features/netsocket/cellular
+ASM_FLAGS += -I../mbed-os/features/netsocket/cellular/generic_modem_driver
+ASM_FLAGS += -I../mbed-os/features/netsocket/cellular/utils
+ASM_FLAGS += -I../mbed-os/features/filesystem
+ASM_FLAGS += -I../mbed-os/features/filesystem/bd
+ASM_FLAGS += -I../mbed-os/features/filesystem/fat
+ASM_FLAGS += -I../mbed-os/features/filesystem/fat/ChaN
+ASM_FLAGS += -I../mbed-os/features/filesystem/littlefs
+ASM_FLAGS += -I../mbed-os/features/filesystem/littlefs/TESTS_COMMON
+ASM_FLAGS += -I../mbed-os/features/filesystem/littlefs/littlefs
+ASM_FLAGS += -I../mbed-os/cmsis
+ASM_FLAGS += -I../mbed-os/cmsis/TARGET_CORTEX_M
+ASM_FLAGS += -I../mbed-os/drivers
+ASM_FLAGS += -I../mbed-os/events
+ASM_FLAGS += -I../mbed-os/events/equeue
+ASM_FLAGS += -I../mbed-os/rtos
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx4
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx5
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx5/Include
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx5/RTX
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Config
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Include
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Source
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Source/TOOLCHAIN_GCC
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Source/TOOLCHAIN_GCC/TARGET_RTOS_M4_M7
+ASM_FLAGS += -I../mbed-os/rtos/TARGET_CORTEX/rtx5/Source
+ASM_FLAGS += -I../mbed-os/hal
+ASM_FLAGS += -I../mbed-os/hal/storage_abstraction
+ASM_FLAGS += -I../mbed-os/platform
+ASM_FLAGS += -I../mbed-os/targets
+ASM_FLAGS += -I../mbed-os/targets/TARGET_STM
+ASM_FLAGS += -I../mbed-os/targets/TARGET_STM/TARGET_STM32F7
+ASM_FLAGS += -I../mbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI
+ASM_FLAGS += -I../mbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI/TARGET_NUCLEO_F767ZI
+ASM_FLAGS += -I../mbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI/device
+ASM_FLAGS += -I../mbed-os/targets/TARGET_STM/TARGET_STM32F7/TARGET_STM32F767xI/device/TOOLCHAIN_GCC_ARM
+ASM_FLAGS += -I../mbed-os/targets/TARGET_STM/TARGET_STM32F7/device
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth/arch
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth/arch/TARGET_STM
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth/arch/TARGET_STM/TARGET_STM32F7
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip-eth/arch/TARGET_STM/TARGET_STM32F7/TARGET_NUCLEO_F767ZI
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip-sys
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip-sys/arch
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/api
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/core
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/core/ipv4
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/core/ipv6
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/lwip
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/lwip/priv
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/lwip/prot
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/netif
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/netif/ppp
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/include/netif/ppp/polarssl
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/netif
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/netif/ppp
+ASM_FLAGS += -I../mbed-os/features/FEATURE_LWIP/lwip-interface/lwip/src/netif/ppp/polarssl
 
 
-LD_FLAGS :=-Wl,--gc-sections -Wl,--wrap,main -Wl,--wrap,_malloc_r -Wl,--wrap,_free_r -Wl,--wrap,_realloc_r -Wl,--wrap,_memalign_r -Wl,--wrap,_calloc_r -Wl,--wrap,exit -Wl,--wrap,atexit -Wl,-n -mcpu=cortex-m7 -mthumb -mfpu=fpv5-d16 -mfloat-abi=hard 
+LD_FLAGS :=-Wl,--gc-sections -Wl,--wrap,main -Wl,--wrap,_malloc_r -Wl,--wrap,_free_r -Wl,--wrap,_realloc_r -Wl,--wrap,_memalign_r -Wl,--wrap,_calloc_r -Wl,--wrap,exit -Wl,--wrap,atexit -Wl,-n -mcpu=cortex-m7 -mthumb -mfpu=fpv5-d16 -mfloat-abi=softfp 
 LD_SYS_LIBS :=-Wl,--start-group -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys  -Wl,--end-group
 
 # Tools and Flags

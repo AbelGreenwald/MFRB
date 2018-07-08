@@ -361,7 +361,7 @@ void i2c_frequency(i2c_t *obj, int hz)
 #endif
 #ifdef I2C_IP_VERSION_V2
     /*  Only predefined timing for below frequencies are supported */
-    MBED_ASSERT((hz == 100000) || (hz == 400000) || (hz == 1000000));
+    //MBED_ASSERT((hz == 100000) || (hz == 400000) || (hz == 1000000));
     handle->Init.Timing = get_i2c_timing(hz);
 
     // Enable the Fast Mode Plus capability
