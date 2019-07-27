@@ -47,7 +47,7 @@ PROJECT := MFRB
 # Objects and Paths
 
 OBJECTS += main.o
-OBJECTS += INA219/INA219.o
+OBJECTS += ak8963/ak8963.o
 OBJECTS += mbed-os/drivers/AnalogIn.o
 OBJECTS += mbed-os/drivers/BusIn.o
 OBJECTS += mbed-os/drivers/BusInOut.o
@@ -459,9 +459,8 @@ OBJECTS += mbed-os/targets/TARGET_STM/us_ticker_32b.o
 
 
 INCLUDE_PATHS += -I../
-INCLUDE_PATHS += -I../.
-INCLUDE_PATHS += -I../INA219/
-INCLUDE_PATHS += -I../mbed-os/.
+INCLUDE_PATHS += -I../ak8963/
+INCLUDE_PATHS += -I../mbed-os
 INCLUDE_PATHS += -I../mbed-os/cmsis
 INCLUDE_PATHS += -I../mbed-os/cmsis/TARGET_CORTEX_M
 INCLUDE_PATHS += -I../mbed-os/drivers
@@ -689,7 +688,7 @@ ASM_FLAGS += -DUSBHOST_OTHER
 ASM_FLAGS += -D__MBED_CMSIS_RTOS_CM
 ASM_FLAGS += -D__CMSIS_RTOS
 ASM_FLAGS += -I../.
-ASM_FLAGS += -I../INA219/
+ASM_FLAGS += -I../ak8963/.
 ASM_FLAGS += -I../mbed-os/.
 ASM_FLAGS += -I../mbed-os/features
 ASM_FLAGS += -I../mbed-os/features/frameworks
