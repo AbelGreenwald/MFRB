@@ -1,5 +1,6 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2019 ARM Limited
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +19,17 @@
 
 #include "platform/platform.h"
 
-#if defined (DEVICE_ANALOGOUT) || defined(DOXYGEN_ONLY)
+#if DEVICE_ANALOGOUT || defined(DOXYGEN_ONLY)
 
 #include "hal/analogout_api.h"
 #include "platform/PlatformMutex.h"
 
 namespace mbed {
-/** \addtogroup drivers */
+/**
+ * \defgroup drivers_AnalogOut AnalogOut class
+ * \ingroup drivers-public-api-gpio
+ * @{
+ */
 
 /** An analog output, used for setting the voltage on a pin
  *
@@ -47,7 +52,6 @@ namespace mbed {
  *     }
  * }
  * @endcode
- * @ingroup drivers
  */
 class AnalogOut {
 
@@ -57,7 +61,8 @@ public:
      *
      * @param pin AnalogOut pin to connect to
      */
-    AnalogOut(PinName pin) {
+    AnalogOut(PinName pin)
+    {
         analogout_init(&_dac, pin);
     }
 
@@ -68,22 +73,14 @@ public:
      *    0.0f (representing 0v / 0%) and 1.0f (representing 3.3v / 100%).
      *    Values outside this range will be saturated to 0.0f or 1.0f.
      */
-    void write(float value) {
-        lock();
-        analogout_write(&_dac, value);
-        unlock();
-    }
+    void write(float value);
 
     /** Set the output voltage, represented as an unsigned short in the range [0x0, 0xFFFF]
      *
      *  @param value 16-bit unsigned short representing the output voltage,
-     *            normalised to a 16-bit value (0x0000 = 0v, 0xFFFF = 3.3v)
+     *            normalized to a 16-bit value (0x0000 = 0v, 0xFFFF = 3.3v)
      */
-    void write_u16(unsigned short value) {
-        lock();
-        analogout_write_u16(&_dac, value);
-        unlock();
-    }
+    void write_u16(unsigned short value);
 
     /** Return the current output voltage setting, measured as a percentage (float)
      *
@@ -95,17 +92,13 @@ public:
      *  @note
      *    This value may not match exactly the value set by a previous write().
      */
-    float read() {
-        lock();
-        float ret = analogout_read(&_dac);
-        unlock();
-        return ret;
-    }
+    float read();
 
     /** An operator shorthand for write()
      * \sa AnalogOut::write()
      */
-    AnalogOut& operator= (float percent) {
+    AnalogOut &operator= (float percent)
+    {
         // Underlying write call is thread safe
         write(percent);
         return *this;
@@ -114,7 +107,8 @@ public:
     /** An operator shorthand for write()
      * \sa AnalogOut::write()
      */
-    AnalogOut& operator= (AnalogOut& rhs) {
+    AnalogOut &operator= (AnalogOut &rhs)
+    {
         // Underlying write call is thread safe
         write(rhs.read());
         return *this;
@@ -123,28 +117,37 @@ public:
     /** An operator shorthand for read()
      * \sa AnalogOut::read()
      */
-    operator float() {
+    operator float()
+    {
         // Underlying read call is thread safe
         return read();
     }
 
-    virtual ~AnalogOut() {
-        // Do nothing
+    virtual ~AnalogOut()
+    {
+        /** Deinitialize pin configuration.
+         */
+        analogout_free(&_dac);
     }
 
 protected:
-
-    virtual void lock() {
+#if !defined(DOXYGEN_ONLY)
+    virtual void lock()
+    {
         _mutex.lock();
     }
 
-    virtual void unlock() {
+    virtual void unlock()
+    {
         _mutex.unlock();
     }
 
     dac_t _dac;
     PlatformMutex _mutex;
+#endif //!defined(DOXYGEN_ONLY)
 };
+
+/** @}*/
 
 } // namespace mbed
 

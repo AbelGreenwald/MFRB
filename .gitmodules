@@ -1,0 +1,3 @@
+[submodule "ak8963"]
+	path = ak8963
+	url = git@github.com:AbelGreenwald/ak8963.git

@@ -39,7 +39,44 @@
 
 static TIM_HandleTypeDef TimHandle;
 
-void pwmout_init(pwmout_t* obj, PinName pin)
+/* Convert STM32 Cube HAL channel to LL channel */
+uint32_t TIM_ChannelConvert_HAL2LL(uint32_t channel, pwmout_t *obj)
+{
+#if !defined(PWMOUT_INVERTED_NOT_SUPPORTED)
+    if (obj->inverted) {
+        switch (channel) {
+            case TIM_CHANNEL_1  :
+                return LL_TIM_CHANNEL_CH1N;
+            case TIM_CHANNEL_2  :
+                return LL_TIM_CHANNEL_CH2N;
+            case TIM_CHANNEL_3  :
+                return LL_TIM_CHANNEL_CH3N;
+#if defined(LL_TIM_CHANNEL_CH4N)
+            case TIM_CHANNEL_4  :
+                return LL_TIM_CHANNEL_CH4N;
+#endif
+            default : /* Optional */
+                return 0;
+        }
+    } else
+#endif
+    {
+        switch (channel) {
+            case TIM_CHANNEL_1  :
+                return LL_TIM_CHANNEL_CH1;
+            case TIM_CHANNEL_2  :
+                return LL_TIM_CHANNEL_CH2;
+            case TIM_CHANNEL_3  :
+                return LL_TIM_CHANNEL_CH3;
+            case TIM_CHANNEL_4  :
+                return LL_TIM_CHANNEL_CH4;
+            default : /* Optional */
+                return 0;
+        }
+    }
+}
+
+void pwmout_init(pwmout_t *obj, PinName pin)
 {
     // Get the peripheral name from the pin and assign it to the object
     obj->pwm = (PWMName)pinmap_peripheral(pin, PinMap_PWM);
@@ -53,7 +90,7 @@ void pwmout_init(pwmout_t* obj, PinName pin)
 
     // Enable TIM clock
 #if defined(TIM1_BASE)
-    if (obj->pwm == PWM_1){
+    if (obj->pwm == PWM_1) {
         __HAL_RCC_TIM1_CLK_ENABLE();
     }
 #endif
@@ -163,13 +200,13 @@ void pwmout_init(pwmout_t* obj, PinName pin)
     pwmout_period_us(obj, 20000); // 20 ms per default
 }
 
-void pwmout_free(pwmout_t* obj)
+void pwmout_free(pwmout_t *obj)
 {
     // Configure GPIO
     pin_function(obj->pin, STM_PIN_DATA(STM_MODE_INPUT, GPIO_NOPULL, 0));
 }
 
-void pwmout_write(pwmout_t* obj, float value)
+void pwmout_write(pwmout_t *obj, float value)
 {
     TIM_OC_InitTypeDef sConfig;
     int channel = 0;
@@ -182,7 +219,7 @@ void pwmout_write(pwmout_t* obj, float value)
         value = 1.0;
     }
 
-    obj->pulse = (uint32_t)((float)obj->period * value);
+    obj->pulse = (uint32_t)((float)obj->period * value + 0.5);
 
     // Configure channels
     sConfig.OCMode       = TIM_OCMODE_PWM1;
@@ -214,10 +251,15 @@ void pwmout_write(pwmout_t* obj, float value)
             return;
     }
 
-    if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &sConfig, channel) != HAL_OK) {
-        error("Cannot initialize PWM\n");
+    if (LL_TIM_CC_IsEnabledChannel(TimHandle.Instance, TIM_ChannelConvert_HAL2LL(channel, obj)) == 0) {
+        // If channel is not enabled, proceed to channel configuration
+        if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &sConfig, channel) != HAL_OK) {
+            error("Cannot initialize PWM\n");
+        }
+    } else {
+        // If channel already enabled, only update compare value to avoid glitch
+        __HAL_TIM_SET_COMPARE(&TimHandle, channel, sConfig.Pulse);
     }
-
 #if !defined(PWMOUT_INVERTED_NOT_SUPPORTED)
     if (obj->inverted) {
         HAL_TIMEx_PWMN_Start(&TimHandle, channel);
@@ -228,7 +270,7 @@ void pwmout_write(pwmout_t* obj, float value)
     }
 }
 
-float pwmout_read(pwmout_t* obj)
+float pwmout_read(pwmout_t *obj)
 {
     float value = 0;
     if (obj->period > 0) {
@@ -237,17 +279,17 @@ float pwmout_read(pwmout_t* obj)
     return ((value > (float)1.0) ? (float)(1.0) : (value));
 }
 
-void pwmout_period(pwmout_t* obj, float seconds)
+void pwmout_period(pwmout_t *obj, float seconds)
 {
     pwmout_period_us(obj, seconds * 1000000.0f);
 }
 
-void pwmout_period_ms(pwmout_t* obj, int ms)
+void pwmout_period_ms(pwmout_t *obj, int ms)
 {
     pwmout_period_us(obj, ms * 1000);
 }
 
-void pwmout_period_us(pwmout_t* obj, int us)
+void pwmout_period_us(pwmout_t *obj, int us)
 {
     TimHandle.Instance = (TIM_TypeDef *)(obj->pwm);
     RCC_ClkInitTypeDef RCC_ClkInitStruct;
@@ -263,14 +305,15 @@ void pwmout_period_us(pwmout_t* obj, int us)
     HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &PclkFreq);
 
     /*  Parse the pwm / apb mapping table to find the right entry */
-    while(pwm_apb_map_table[i].pwm != obj->pwm) {
+    while (pwm_apb_map_table[i].pwm != obj->pwm) {
         i++;
     }
 
-    if(pwm_apb_map_table[i].pwm == 0)
+    if (pwm_apb_map_table[i].pwm == 0) {
         error("Unknown PWM instance");
+    }
 
-    if(pwm_apb_map_table[i].pwmoutApb == PWMOUT_ON_APB1) {
+    if (pwm_apb_map_table[i].pwmoutApb == PWMOUT_ON_APB1) {
         PclkFreq = HAL_RCC_GetPCLK1Freq();
         APBxCLKDivider = RCC_ClkInitStruct.APB1CLKDivider;
     } else {
@@ -295,9 +338,9 @@ void pwmout_period_us(pwmout_t* obj, int us)
     while ((TimHandle.Init.Period > 0xFFFF) || (TimHandle.Init.Prescaler > 0xFFFF)) {
         obj->prescaler = obj->prescaler * 2;
         if (APBxCLKDivider == RCC_HCLK_DIV1) {
-          TimHandle.Init.Prescaler = (((PclkFreq) / 1000000) * obj->prescaler) - 1;
+            TimHandle.Init.Prescaler = (((PclkFreq) / 1000000) * obj->prescaler) - 1;
         } else {
-          TimHandle.Init.Prescaler = (((PclkFreq * 2) / 1000000) * obj->prescaler) - 1;
+            TimHandle.Init.Prescaler = (((PclkFreq * 2) / 1000000) * obj->prescaler) - 1;
         }
         TimHandle.Init.Period = (us - 1) / obj->prescaler;
         /*  Period decreases and prescaler increases over loops, so check for
@@ -324,20 +367,25 @@ void pwmout_period_us(pwmout_t* obj, int us)
     __HAL_TIM_ENABLE(&TimHandle);
 }
 
-void pwmout_pulsewidth(pwmout_t* obj, float seconds)
+void pwmout_pulsewidth(pwmout_t *obj, float seconds)
 {
     pwmout_pulsewidth_us(obj, seconds * 1000000.0f);
 }
 
-void pwmout_pulsewidth_ms(pwmout_t* obj, int ms)
+void pwmout_pulsewidth_ms(pwmout_t *obj, int ms)
 {
     pwmout_pulsewidth_us(obj, ms * 1000);
 }
 
-void pwmout_pulsewidth_us(pwmout_t* obj, int us)
+void pwmout_pulsewidth_us(pwmout_t *obj, int us)
 {
     float value = (float)us / (float)obj->period;
     pwmout_write(obj, value);
+}
+
+const PinMap *pwmout_pinmap()
+{
+    return PinMap_PWM;
 }
 
 #endif
