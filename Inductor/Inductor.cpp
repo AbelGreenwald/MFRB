@@ -9,7 +9,7 @@ Inductor::Inductor(PinName enA, PinName polarity) : PID (), PwmOut(enA), Digital
 
     //Defaults for DigitalOut
     DigitalOut::write(0);
-    
+
     //Defaults for PID
     usingFeedForward       = false;
     inAuto                 = false;
@@ -21,7 +21,7 @@ Inductor::Inductor(PinName enA, PinName polarity) : PID (), PwmOut(enA), Digital
     accError_              = 0.0;
     bias_                  = 0.0;
     realOutput_            = 0.0;
-    tSample_               =   1; //not zero
+    tSample_               = 1; //not zero
 
     setInterval(.01);
     setInputLimits (0.0, 1.0);
@@ -30,7 +30,6 @@ Inductor::Inductor(PinName enA, PinName polarity) : PID (), PwmOut(enA), Digital
 
     //Temporary things
     protection_ = false;
-//    period_ms(6);
 }
 
 void Inductor::Initialize() {

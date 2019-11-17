@@ -5,6 +5,7 @@ syntax: glob
 .CVS
 .cvs
 *.orig
+BUILD
 .build
 .export
 .msub
@@ -17,9 +18,10 @@ syntax: glob
 *.launch
 *.ewp
 *.eww
-Makefile
+/Makefile
 Debug
 *.htm
+.mbed
 *.settings
 mbed_settings.py
 *.py[cod]
