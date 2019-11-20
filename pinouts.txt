@@ -1,0 +1,42 @@
+Pins for TFT lcd
+mod_pin mcu_pin
+1 gnd      gnd
+2 VCC      VCC (5v)
+3 NC
+4 RS     1     PC_10 (negates SPI3 UART4 QSPI1)
+5 WR     2     PC_11 (se above)
+6 RD     3     PC_12
+7 DB8    4     PD_2
+8 DB9    31     PH_1
+9 DB10   39   PD_4 (negates uart 2)
+10 DB11 40     PD_3(negates spi2)
+11 DB12 41    PD_5
+12 DB13 42     PG_2
+13 DB14   43    PD_6 (negates SPI3 UART2)
+14 DB_15 44   PG_3
+15 CS  47     PE_3
+16 F_CS 46    PE_2 (negates SPI4 QSPI1)
+17 RST   48   PE_4
+18 NC
+19 LED-A
+20 NC
+21 DB0   51   PF_1 (negates i2c2)
+22 DB1 50     PE_5 (negate SPI4 PWM9/1)
+23 DB2  52    PF_2
+24 DB3 53     PF_0 (negates i2c2)
+25 DB4  55    PD_1 (negates CAN1 UART4)
+26 DB5 57     PD_0
+27 DB6  58    PG_1
+28 DB7 59     PG_0
+29 D_CLK    PE_6
+x 30 D_CS     PG_15 (negates uart6)
+x 31 D_DIN    PE_1 (negates UART8)
+x 32 D_BUSY   PG_12 (negates SPI6)
+x 33 D_OUT    PC_8 (negates PWM3/3 UART5)
+x 34 D_PenIRQ LATER PC_6 (negates PWM3/1 UART6)
+x 35 SD_OUT         PD_8 <-- change pins!!
+x 36 SD_SCK         PC_7 (negates uart6 pwm3/2)
+x 37 SD_DIN         PA_8 (negates can3 uart7 pwm2/2) <-- change pins
+x 38 SD_CS          PB_15 (negates uart4 pwm1/3 uart1 spi2)  <-- change pins
+x 39 F_WP           PB_13 (negates uart3 pwm1/1 uart4 spi2 can2)  <-- change pins
+x 40 F_HOLD         PA_10 (negates UART1 PWM1/3) <-- change pins
