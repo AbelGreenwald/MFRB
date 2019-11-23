@@ -1,11 +1,14 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#define GFX_USE_OS_KEIL                              GFXOFF
-
 /* Define Pins */
-#define INDUCTOR_X_L_POLARITY PE_0
+#define INDUCTOR_X_L_POLARITY PE_15
 #define INDUCTOR_X_L_PWM      PE_14
+#define INDUCTOR_X_L_CURRENT  PF_7
+
+#define INDUCTOR_Z_POLARITY PB_11
+#define INDUCTOR_Z_PWM      PB_10
+#define INDUCTOR_Z_CURRENT  PF_9
 
 //#define INDUCTOR_X_H_POLARITY NaN
 //#define INDUCTOR_X_H_PWM      NaN
@@ -16,12 +19,8 @@
 //#define INDUCTOR_Y_H_POLARITY NaN
 //#define INDUCTOR_Y_H_PWM      NaN
 
-#define INDUCTOR_Z_POLARITY PA_9
-#define INDUCTOR_Z_PWM      PC_9
-#define INDUCTOR_Z_CURRENT  PC_0
-
-#define MAG_DATA_READY_PIN PC_2
-#define MAG_DATA_TRGR_PIN  PH_1
+#define MAG_DATA_READY_PIN PG_4
+//#define MAG_DATA_TRGR_PIN  PH_1
 
 // 16 BIT TFT LCD PARALLEL
 #define DB0  PF_1
@@ -97,6 +96,7 @@
 #define inductor_Z_Kd 5
 #define inductor_Z_Ki 1
 
+
 #define inductor_X_l_Kc 0.5
 #define inductor_X_l_Kd 5
 #define inductor_X_l_Ki 1
@@ -111,9 +111,25 @@ AnalogIn inductor_z_current(INDUCTOR_Z_CURRENT);
 // Timer inturrupt for power LED
 Ticker timer1;
 
+DigitalIn mag_pin(MAG_DATA_READY_PIN);
+InterruptIn mag_ready(MAG_DATA_READY_PIN);
+
+
+//mail_box
+typedef struct {
+  float    xval; /* AD result of measured voltage */
+  float    yval; /* AD result of measured current */
+  float    zval; /* AD result of measured current */
+  bool overflow; /* A counter value               */
+} mag_reading;
+
+osMailQDef(mag_mail, 1, mag_reading);
+osMailQId  mag_mail;
+
 /* Function Prototypes  */
 void _isr_active_blink(void);
 void _isr_pwm_cycle(void);
+void _isr_mag_data_ready(void);
 void count_ms(void);
 void readCurrent(void const*);
 void inductor_x(void const*);
@@ -125,8 +141,8 @@ void processPID(Inductor& S, float a_value);
 //BusOut buspins(DB0, DB1, DB2, DB3, DB4, DB5, DB6, DB7, DB8, DB9, DB10, DB11, DB12, DB13, DB14, DB15);
 
 /* Threads  */
-osThreadDef(magnetometer, osPriorityNormal, 8192);
-osThreadDef(inductor_x, osPriorityHigh, 4096);
-osThreadDef(readCurrent, osPriorityLow, 8192);
-osThreadDef(display, osPriorityHigh, 20000);
+osThreadDef(magnetometer, osPriorityHigh, 4096);
+osThreadDef(inductor_x, osPriorityNormal, 4096);
+osThreadDef(readCurrent, osPriorityNormal, 8192);
+osThreadDef(display, osPriorityLow, 8192);
 #endif
